@@ -170,7 +170,10 @@ def post_comment(pr_html_url: str, message: str):
     else:
         print(f"[INFO] Comment posted to PR {pr_number}")
 
+visited_comment = set()
+
 def process_notifications(last_checked: str = None, last_modified: str = None):
+    global visited_comment
     notifications, poll_interval, new_last_modified = get_latest_notifications(
         since=last_checked, last_modified=last_modified
     )
@@ -189,8 +192,9 @@ def process_notifications(last_checked: str = None, last_modified: str = None):
             .replace("/pulls/", "/pull/")
         )
         latest_comment_url = subject.get("latest_comment_url")
-        if not latest_comment_url:
+        if not latest_comment_url or latest_comment_url in visited_comment:
             continue
+        visited_comment.add(latest_comment_url)
         headers = {
             "Authorization": f"Bearer {get_github_token()}",
             "Accept": "application/vnd.github+json",
